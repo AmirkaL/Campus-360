@@ -1,0 +1,98 @@
+@import url(https://fonts.googleapis.com/css?family=Ewert);
+
+
+.flags {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-size: 3em;
+}
+
+.flag{
+    box-sizing:content-box;
+    display:inline-block;
+    position:relative;
+    width:1em;
+    height:1em;
+    margin:0;
+    border-radius:50%;
+    border:solid #eee;
+    overflow:hidden;
+    box-shadow:0;
+    opacity:.5;
+    transition: 1s;
+}
+.flag:hover, .flag.active{
+    border-radius:50%;
+    box-shadow:0 0 .2em #666;
+    opacity:1;
+    transform:rotate(-360deg);
+}
+
+/* Китай ZH */
+
+.zh:before {
+    background-image: url('/static/images/load/ch_lang.png');
+    display: block;
+    position: absolute;
+    bottom: 0;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}
+
+.zh:after {
+    background-image: url('/static/images/load/ch_lang.png');
+    display: block;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    float: right;
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}
+
+/* Испания ES */
+
+.es:before {
+    background-image: url('/static/images/load/es_lang.png');
+    display: block;
+    position: absolute;
+    bottom: 0;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}
+
+.es:after {
+    display: block;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    background-image: url('/static/images/load/es_lang.png');
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}
+
+/* Россия RU */
+
+.ru:before {
+    background-image: url('/static/images/load/ru_lang.png');
+    display: block;
+    position: absolute;
+    bottom: 0;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}
+
+.ru:after {
+    display: block;
+    content: "";
+    width: 1em; /* Добавлен размер */
+    height: 1em; /* Добавлен размер */
+    background-image: url('/static/images/load/ru_lang.png');
+    background-size: cover; /* Добавлено для корректного отображения изображения */
+}

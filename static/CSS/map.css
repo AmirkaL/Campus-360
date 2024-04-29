@@ -1,0 +1,191 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap");
+
+
+#video-container {
+    position: fixed;
+    bottom: -5px;
+    right: -200px;
+    width: 65%;
+    display: none;
+    justify-content: center;
+    z-index: 3;
+}
+
+#guided-video {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+
+.virtual-tour {
+    position: absolute;
+    top: 40%;
+    left: 95%;
+    transform: translate(-50%, -50%);
+    z-index: 4; /* Устанавливаем z-index, чтобы кнопка была поверх изображения */
+    /* Другие стили, которые могут влиять на отображение элемента */
+}
+
+
+#video-container.hidden {
+  opacity: 0; /* устанавливаем нулевую прозрачность для скрытия */
+  pointer-events: none; /* отключаем события мыши для скрытого контейнера */
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0); /* Изначально прозрачное */
+  display: none;
+  z-index: 2; /* Поместить под видео контейнером */
+  opacity: 0; /* Начальное значение прозрачности */
+  transition: opacity 0.5s ease; /* Плавный переход для изменения прозрачности */
+}
+
+.overlay.active {
+  background-color: rgba(0, 0, 0, 0.7); /* Прозрачный черный цвет */
+  display: block;
+  opacity: 1; /* Устанавливаем непрозрачность */
+}
+
+
+@keyframes easeOutQuad {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+body {
+    background-color: #030312;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.container p {
+    position: absolute;
+    color: #fff;
+    font-size: 1.5em;
+    font-family: consolas;
+    bottom: -80px;
+    letter-spacing: 0.15em;
+
+}
+.container .ring {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin: -30px;
+    border: 4px solid transparent;
+    border-top: 4px solid #E91E63;
+    animation: rotate 4s linear infinite;
+}
+.container .ring:nth-child(2) {
+    border-top-color: #2196F3;
+    animation: rotate2 4s linear infinite;
+    animation-delay: -2s;
+}
+
+.container .ring:nth-child(3) {
+    border-top-color: #4CAF50;
+    animation: rotate3 4s linear infinite;
+    animation-delay: 2s;
+    position: absolute;
+    top: -66.66px;
+}
+
+
+.container .ring::before{
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    top: 12px;
+    right: 12px;
+    background-color: #E91E63;
+    box-shadow: 0 0 0 5px #E91E6333,
+    0 0 0 10px #E91E6322,
+    0 0 0 16px #E91E6311,
+    0 0 20px #E91E63,
+    0 0 50px #E91E63;
+}
+.container .ring:nth-child(2)::before{
+    bottom: 12px;
+    left: 12px;
+    background-color: #2196F3;
+    box-shadow: 0 0 0 5px #2196F333,
+    0 0 0 10px #2196F322,
+    0 0 0 16px #2196F311,
+    0 0 20px #2196F3,
+    0 0 50px #2196F3;
+}
+.container .ring:nth-child(3)::before{
+    background-color: #4CAF50;
+    box-shadow: 0 0 0 5px #4CAF5033,
+    0 0 0 10px #4CAF5022,
+    0 0 0 16px #4CAF5011,
+    0 0 20px #4CAF50,
+    0 0 50px #4CAF50;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+@keyframes rotate2 {
+    0% {
+        transform: rotate(360deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+@keyframes rotate3 {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+
+#loading {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: #fff;
+  z-index: 99;
+}
