@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>360 Photo Viewer</title>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="/static/CSS/chardinjs.css" rel="stylesheet">
+  <script src="/static/JS/chardinjs.min.js"></script>
+
+  <link rel="stylesheet" href="/static/CSS/map.css">
+  <link rel="stylesheet" href="/static/CSS/buttons.css">
+
+  <link href='https://fonts.googleapis.com/css?family=Lato|Roboto:400,900' rel='stylesheet' type='text/css'>
+  <style>
+    /* Стили для заставки загрузки */
+    .loader-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #280710; /* Цвет фона заставки */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      z-index: 9999;
+    }
+
+    .loader {
+      border: 8px solid #f3f3f3; /* Цвет внешнего круга */
+      border-top: 8px solid #3498db; /* Цвет верхнего круга */
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+
+    .btn-back,
+    .btn-forward,
+    .btn-left,
+    .btn-right {
+      position: absolute;
+      z-index: 99;
+      padding: 8px 16px;
+      background-color: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      display: none; /* Скрываем все кнопки по умолчанию */
+    }
+
+    .btn-back {
+      bottom: 10px;
+      left: 50%;
+    }
+
+    .btn-forward {
+      bottom: 80px;
+      left: 50%;
+    }
+
+    .branch {
+      position: absolute;
+      bottom: 130px;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      left: calc(50% - 40px); /* Центрируем относительно родителя (на половину ширины элемента + желаемое расстояние между элементами) */
+    }
+
+    .branch1 {
+      position: absolute;
+      bottom: 130px;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      left: calc(50% + 100px); /* Центрируем относительно родителя (на половину ширины элемента + желаемое расстояние между элементами) */
+
+    }
+
+
+    .btn-back,
+    .btn-forward,
+    .btn-right,
+    .btn-left {
+      /* Ваши основные стили для всех кнопок */
+      width: 70px;
+      height: 70px;
+      position: absolute;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.7); /* Полупрозрачный белый цвет */
+      border-radius: 50%;
+      border: 2px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Применение стилей при наведении на любую кнопку */
+    .btn-back:hover,
+    .btn-forward:hover,
+    .btn-right:hover,
+    .btn-left:hover {
+      background-color: rgba(240, 240, 240, 0.7); /* Немного более светлый */
+      border-color: #999;
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Применение стилей при нажатии на любую кнопку */
+    .btn-back:active,
+    .btn-forward:active,
+    .btn-right:active,
+    .btn-left:active {
+      transform: scale(0.9);
+      box-shadow: none;
+    }
+  </style>
+
+  <style>
+
+    #help-button {
+      justify-self: center;
+      align-self: center;
+      border: none;
+      background: transparent;
+      border: 0.37rem solid white;
+      border-radius: 2rem;
+      cursor: pointer;
+      width: 6rem;
+      height: 6rem;
+      transform: translateY(0) scale(1);
+      transition: transform 0.12s ease-out;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    #help-button:active {
+      transform: translateY(1rem) scale(0.95);
+    }
+
+    #help-button:focus {
+      outline: none;
+      box-shadow: 0 0 0 0.3rem rgba(255, 255, 255, 0.3);
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    #help-button svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    #help-button svg path {
+      stroke: white;
+      stroke-width: 6;
+      transition: stroke-dasharray 0.44s, stroke-dashoffset 0.44s;
+      will-change: stroke-dasharray, stroke-dashoffset;
+    }
+
+    .kf1 #dot {
+      stroke-dasharray: 12.5 190;
+      stroke-dashoffset: 0;
+    }
+
+    .kf2 #dot {
+      stroke-dasharray: 58 190;
+      stroke-dashoffset: -102;
+    }
+
+    .kf3 #dot {
+      stroke-dasharray: 12.5 177;
+      stroke-dashoffset: -190;
+    }
+
+    .kf1 #qmark {
+      stroke-dasharray: 97 207;
+      stroke-dashoffset: -112;
+    }
+
+    .kf2 #qmark {
+      stroke-dasharray: 58 207;
+      stroke-dashoffset: 0;
+    }
+
+    .kf3 #qmark {
+      stroke-dasharray: 97 112;
+      stroke-dashoffset: 97;
+    }
+
+  </style>
+
+  <style>
+    .slider-line {
+      position: absolute;
+      margin: 40px;
+      top: 0;
+      left: 0;
+      transform: translateX(-50%);
+      height: 50%;
+      border-left: 2px solid #fff; /* Линия */
+    }
+
+    .slider {
+      position: absolute;
+      width: 10px; /* Ширина ползунка */
+      height: 60px; /* Высота ползунка */
+      background-color: #3f0505;
+      cursor: pointer;
+      left: 0;
+      margin: 40px;
+      border-radius: 5px;
+      transform: translate(-50%, 0); /* Используем transform для корректного выравнивания */
+      transition: top 0.3s ease-in-out;
+    }
+
+    .slider-text {
+      position: absolute;
+      left: 20px; /* Поместить текст справа от слайдера */
+      top: 40px; /* Поместить текст на нужной высоте от верха слайдера */
+      color: #FFFFFF;
+      margin: 45px;
+      font-size: 20px;
+      font-family: "Montserrat";
+    }
+  </style>
+
+  <style>
+
+    /* Ширина и цвет скроллбара */
+    #mySidebar {
+      scrollbar-width: thin; /* Устанавливаем ширину скроллбара */
+      scrollbar-color: #888888 #f5f5f5; /* Цвет полосы и фона скроллбара */
+    }
+
+    /* Стилизация полосы скроллбара */
+    #mySidebar::-webkit-scrollbar {
+      width: 8px; /* Ширина полосы скроллбара для WebKit (Chrome, Safari, etc.) */
+    }
+
+    /* Стилизация ползунка скроллбара */
+    #mySidebar::-webkit-scrollbar-thumb {
+      background-color: #888888; /* Цвет ползунка скроллбара */
+    }
+
+    /* Стили для навбара */
+    .navbar {
+      overflow: hidden;
+      background-color: #333;
+    }
+
+    .navbar button {
+      font-size: 20px;
+      border: none;
+      outline: none;
+      padding: 14px 16px;
+      background-color: inherit;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .navbar button:hover {
+      background-color: #ddd;
+      color: black;
+    }
+
+    /* Стили для выезжающего меню */
+    .sidebar {
+      height: 100%;
+      width: 300px;
+      position: absolute;
+      z-index: 1;
+      top: 0;
+      left: -350px; /* Скрыть меню за пределами экрана */
+      background-color: #111;
+      overflow-x: hidden;
+      transition: 0.5s;
+      padding-top: 60px;
+    }
+
+    .sidebar a {
+      padding: 8px 8px 8px 32px;
+      text-decoration: none;
+      font-size: 25px;
+      color: #818181;
+      display: block;
+      transition: 0.3s;
+    }
+
+    .sidebar a:hover {
+      color: #f1f1f1;
+    }
+
+    .sidebar .closebtn {
+      position: absolute;
+      top: 0;
+      font-size: 36px;
+    }
+
+    .main {
+      transition: margin-left 0.5s;
+      padding: 16px;
+      margin-left: 0; /* Убрать смещение основного содержимого */
+    }
+
+    /* Медиа-запрос для отображения навбара на мобильных устройствах */
+    @media screen and (max-height: 450px) {
+      .sidebar {padding-top: 15px;}
+      .sidebar a {font-size: 18px;}
+    }
+
+    .image-link {
+      display: block;
+      text-decoration: none;
+      margin-bottom: 10px; /* отступ между блоками */
+    }
+
+    .image-container {
+      width: 100%; /* ширина блока равна ширине навбара */
+      height: 100px; /* высота блока с изображением */
+      overflow: hidden;
+      border-radius: 10%;
+    }
+
+    /* Добавление 3D-эффекта при наведении */
+    .image-container {
+      position: relative;
+      width: 100%;
+      height: 100px;
+      overflow: hidden;
+      perspective: 1000px; /* Добавляем перспективу */
+    }
+
+    .image-container img {
+      width: 100%;
+      height: auto;
+      filter: brightness(70%);
+      transition: transform 0.3s, filter 0.3s ease-in-out;
+    }
+
+    .image-link:hover .image-container img {
+      filter: brightness(100%);
+      transform: rotateY(10deg) scale(1.1); /* Поворот по оси Y и увеличение масштаба */
+    }
+
+    .image-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .image-link:hover .image-container::before {
+      opacity: 1;
+    }
+
+    .image-text {
+      position: absolute;
+      top: 55%;
+      left: 40%;
+      transform: translate(-50%, -50%);
+      padding: 10px;
+      color: rgba(248, 247, 247, 0.99);
+      font-size: 24px;
+    }
+    </style>
+
+
+  <style>
+
+    .loader_tree {
+      background: #233343;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+
+    .tree {
+      position: relative;
+      height: 50vmin;
+      width: 25vmin;
+      transform-style: preserve-3d;
+      animation: spin 2s infinite linear;
+    }
+    .tree__light {
+      transform-style: preserve-3d;
+      position: absolute;
+      height: 1vmin;
+      width: 1vmin;
+      border-radius: 50%;
+      animation: flash calc(var(--speed) * 1s) calc(var(--delay) * 1s) infinite steps(4), appear 0.5s calc(var(--appear) * 0.05s) both;
+      left: 50%;
+      transform: translate(-50%, 50%) rotateY(calc(var(--rotate, 0) * 1deg)) translate3d(0, 0, calc(var(--radius, 0) * 1vmin));
+      bottom: calc(var(--y, 0) * 1%);
+    }
+    .tree__star {
+      stroke-width: 5vmin;
+      stroke: #f5e0a3;
+      filter: drop-shadow(0 0 2vmin #fcf1cf);
+      height: 5vmin;
+      width: 5vmin;
+      overflow: visible !important;
+      bottom: 100%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      position: absolute;
+      stroke-dasharray: 1000 1000;
+      fill: none;
+      animation: stroke 1s calc((var(--delay) * 0.95) * 0.05s) both;
+    }
+    @-moz-keyframes stroke {
+      from {
+        stroke-dashoffset: -1000;
+      }
+    }
+    @-webkit-keyframes stroke {
+      from {
+        stroke-dashoffset: -1000;
+      }
+    }
+    @-o-keyframes stroke {
+      from {
+        stroke-dashoffset: -1000;
+      }
+    }
+    @keyframes stroke {
+      from {
+        stroke-dashoffset: -1000;
+      }
+    }
+    @-moz-keyframes spin {
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+    @-webkit-keyframes spin {
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+    @-o-keyframes spin {
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+    @keyframes spin {
+      to {
+        transform: rotateY(360deg);
+      }
+    }
+    @-moz-keyframes appear {
+      from {
+        opacity: 0;
+      }
+    }
+    @-webkit-keyframes appear {
+      from {
+        opacity: 0;
+      }
+    }
+    @-o-keyframes appear {
+      from {
+        opacity: 0;
+      }
+    }
+    @keyframes appear {
+      from {
+        opacity: 0;
+      }
+    }
+    @-moz-keyframes flash {
+      0%, 100% {
+        background: #f00;
+      }
+      20% {
+        background: #fff;
+      }
+      40% {
+        background: #f00;
+      }
+      60% {
+        background: #fff;
+      }
+      80% {
+        background: #f00;
+      }
+    }
+    @-webkit-keyframes flash {
+      0%, 100% {
+        background: #f00;
+      }
+      20% {
+        background: #fff;
+      }
+      40% {
+        background: #f00;
+      }
+      60% {
+        background: #fff;
+      }
+      80% {
+        background: #f00;
+      }
+    }
+    @-o-keyframes flash {
+      0%, 100% {
+        background: #f00;
+      }
+      20% {
+        background: #fff;
+      }
+      40% {
+        background: #f00;
+      }
+      60% {
+        background: #fff;
+      }
+      80% {
+        background: #f00;
+      }
+    }
+    @keyframes flash {
+      0%, 100% {
+        background: #f00;
+      }
+      20% {
+        background: #fff;
+      }
+      40% {
+        background: #f00;
+      }
+      60% {
+        background: #fff;
+      }
+      80% {
+        background: #f00;
+      }
+    }
+
+  </style>
+
+<!--  day-night switch-->
+
+  <style>
+
+    .switch-wrapper {
+      position: absolute;
+      top: 8%;
+      z-index: 999;
+      font-size: 0;
+      left: 83%;
+    }
+    .switch-wrapper input {
+      display: none;
+    }
+    .switch-label {
+      font-size: 1rem;
+      display: inline-block;
+      line-height: 40px;
+      vertical-align: top;
+      padding: 5px 10px;
+      transition: transform ease-in 0.2s;
+      font-weight: bold;
+      opacity: 0.6;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 100px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 50px;
+      border: 2px solid #eee;
+      background-color: #2196f3;
+      background-image: radial-gradient(circle, #fefefe 20%, transparent 30%), radial-gradient(circle, #fefefe 20%, transparent 30%), radial-gradient(circle, #fefefe 20%, transparent 30%), radial-gradient(circle, #fefefe 20%, transparent 30%), radial-gradient(circle, #fefefe 20%, transparent 30%), radial-gradient(circle, #fefefe 20%, transparent 30%);
+      background-size: 50% 50%, 60% 60%, 40% 40%, 40% 40%, 50% 50%, 40% 40%;
+      background-position: 60% 82%, 80% 80%, 82% 80%, 110% 20%, 134% 12%, 130% 20%;
+      background-repeat: no-repeat;
+      -webkit-transition: 0.4s;
+      transition: 0.4s;
+      overflow: hidden;
+    }
+    .switch:before {
+      position: absolute;
+      content: "";
+      height: 35px;
+      width: 35px;
+      top: 50%;
+      left: 2px;
+      cursor: pointer;
+      transform: translateY(-50%);
+      background-color: #ffeb3b;
+      background-image: radial-gradient(circle, #ffc107 15%, #ffeb3b 100%);
+      box-shadow: 0px 0px 20px 10px rgba(255, 235, 255, 0.4);
+      transition: transform ease-in 0.2s;
+      border-radius: 50%;
+      background-repeat: no-repeat;
+    }
+    .switch-label.day {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    input:checked ~ .switch {
+      background-color: #023660;
+      background-image: radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%), radial-gradient(circle, #fff 10%, transparent 30%);
+      background-size: 8% 8%, 7% 7%, 6% 6%, 8% 8%, 8% 8%, 6% 6%, 6% 6%, 8% 8%, 7% 7%;
+      background-position: 20% 20%, 45% 30%, 25% 55%, 20% 90%, 40% 60%, 5% 50%, 58% 10%, 58% 60%, 50% 80%;
+      background-repeat: no-repeat;
+    }
+    input:checked ~ .switch:before {
+      background-color: #ddd;
+      background-image: radial-gradient(circle, #c4c4c4 50%, transparent 50%), radial-gradient(circle, #c9c9c9 50%, transparent 50%), radial-gradient(circle, #c9c9c9 50%, transparent 50%), radial-gradient(circle, #c9c9c9 50%, transparent 50%);
+      background-size: 40% 40%, 25% 25%, 50% 50%, 30% 30%;
+      background-position: 20% 20%, 65% 30%, 120% 100%, 20% 80%;
+      box-shadow: 0px 0px 20px 10px rgba(255, 255, 255, 0.2);
+    }
+    .switch-wrapper input:checked ~ .switch-label.day {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    .switch-wrapper input:checked ~ .switch-label.night {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    .switch-wrapper input:checked ~ .switch:before {
+      transform: translate(60px, -50%);
+    }
+
+    /* Стили для изображения */
+    #dayNightImage {
+      width: 400px;
+      height: 300px;
+      transition: opacity 0.5s ease; /* Добавляем плавную анимацию здесь */
+    }
+  </style>
+</head>
+<body>
+<!-- Прелоадер -->
+<!--<div class="loader-wrapper" id="loader">-->
+<!--  <div class="loader"></div>-->
+<!--</div>-->
+
+<div class="loader-wrapper">
+  <div class="tree" id="loader1">
+    <div class="tree__light" style="--appear: 0; --y: 0; --rotate: 1440; --radius: 12.5; --speed: 2.2687571299642473; --delay: -9.589763005523206;"></div>
+    <div class="tree__light" style="--appear: 1; --y: 2; --rotate: 1411.2; --radius: 12.25; --speed: 2.1156644507333144; --delay: -6.948757705782656;"></div>
+    <div class="tree__light" style="--appear: 2; --y: 4; --rotate: 1382.4; --radius: 12; --speed: 2.3058220595245604; --delay: -7.5226465353648875;"></div>
+    <div class="tree__light" style="--appear: 3; --y: 6; --rotate: 1353.6000000000001; --radius: 11.75; --speed: 1.7629883750228514; --delay: -2.62157640727684;"></div>
+    <div class="tree__light" style="--appear: 4; --y: 8; --rotate: 1324.8; --radius: 11.5; --speed: 9.271067992881468; --delay: -3.9264235403697123;"></div>
+    <div class="tree__light" style="--appear: 5; --y: 10; --rotate: 1296; --radius: 11.25; --speed: 5.736893541468384; --delay: -4.560602319422575;"></div>
+    <div class="tree__light" style="--appear: 6; --y: 12; --rotate: 1267.2; --radius: 11; --speed: 8.062342593770953; --delay: -2.0380563220855064;"></div>
+    <div class="tree__light" style="--appear: 7; --y: 14; --rotate: 1238.4; --radius: 10.75; --speed: 3.2720239904700454; --delay: -5.3109453623425225;"></div>
+    <div class="tree__light" style="--appear: 8; --y: 16; --rotate: 1209.6000000000001; --radius: 10.5; --speed: 9.090938850064049; --delay: -7.402381686545674;"></div>
+    <div class="tree__light" style="--appear: 9; --y: 18; --rotate: 1180.8; --radius: 10.25; --speed: 4.194566301811666; --delay: -5.089317954417261;"></div>
+    <div class="tree__light" style="--appear: 10; --y: 20; --rotate: 1152; --radius: 10; --speed: 8.259108337920797; --delay: -4.584055116820749;"></div>
+    <div class="tree__light" style="--appear: 11; --y: 22; --rotate: 1123.2; --radius: 9.75; --speed: 2.602370850113611; --delay: -3.6339061463471456;"></div>
+    <div class="tree__light" style="--appear: 12; --y: 24; --rotate: 1094.4; --radius: 9.5; --speed: 0.8305466680544393; --delay: -8.013544703745616;"></div>
+    <div class="tree__light" style="--appear: 13; --y: 26; --rotate: 1065.6000000000001; --radius: 9.25; --speed: 1.9458042537538334; --delay: -5.132278798101617;"></div>
+    <div class="tree__light" style="--appear: 14; --y: 28; --rotate: 1036.8; --radius: 9; --speed: 0.05776727470555354; --delay: -6.875480646760148;"></div>
+    <div class="tree__light" style="--appear: 15; --y: 30; --rotate: 1008; --radius: 8.75; --speed: 5.847330264677726; --delay: -9.062365006197503;"></div>
+    <div class="tree__light" style="--appear: 16; --y: 32; --rotate: 979.2; --radius: 8.5; --speed: 9.764004404338902; --delay: -5.265823121961446;"></div>
+    <div class="tree__light" style="--appear: 17; --y: 34; --rotate: 950.4; --radius: 8.25; --speed: 8.215082499466089; --delay: -3.5376847445328963;"></div>
+    <div class="tree__light" style="--appear: 18; --y: 36; --rotate: 921.6; --radius: 8; --speed: 6.9614699245763685; --delay: -5.419160584521365;"></div>
+    <div class="tree__light" style="--appear: 19; --y: 38; --rotate: 892.8000000000001; --radius: 7.75; --speed: 0.005314614090439207; --delay: -2.448173408443677;"></div>
+    <div class="tree__light" style="--appear: 20; --y: 40; --rotate: 864; --radius: 7.5; --speed: 6.271055480600538; --delay: -8.238474488066597;"></div>
+    <div class="tree__light" style="--appear: 21; --y: 42; --rotate: 835.2; --radius: 7.25; --speed: 0.2000599701104222; --delay: -2.8988547520784413;"></div>
+    <div class="tree__light" style="--appear: 22; --y: 44; --rotate: 806.4; --radius: 7; --speed: 7.294844340461404; --delay: -6.046743887729519;"></div>
+    <div class="tree__light" style="--appear: 23; --y: 46; --rotate: 777.6; --radius: 6.75; --speed: 2.386756080327721; --delay: -1.2190040615432784;"></div>
+    <div class="tree__light" style="--appear: 24; --y: 48; --rotate: 748.8000000000001; --radius: 6.5; --speed: 1.3359034067240105; --delay: -2.409410479748002;"></div>
+    <div class="tree__light" style="--appear: 25; --y: 50; --rotate: 720; --radius: 6.25; --speed: 1.4751198625888895; --delay: -8.691202132389275;"></div>
+    <div class="tree__light" style="--appear: 26; --y: 52; --rotate: 691.2; --radius: 6; --speed: 4.173362932251705; --delay: -3.8817570729410478;"></div>
+    <div class="tree__light" style="--appear: 27; --y: 54; --rotate: 662.4; --radius: 5.75; --speed: 5.288513372274741; --delay: -8.226816908691097;"></div>
+    <div class="tree__light" style="--appear: 28; --y: 56; --rotate: 633.6; --radius: 5.5; --speed: 0.17862000232022224; --delay: -6.263805421861186;"></div>
+    <div class="tree__light" style="--appear: 29; --y: 58; --rotate: 604.8000000000001; --radius: 5.25; --speed: 2.140105479923764; --delay: -0.2462429593754889;"></div>
+    <div class="tree__light" style="--appear: 30; --y: 60; --rotate: 576; --radius: 5; --speed: 4.487483810618671; --delay: -6.784406718845187;"></div>
+    <div class="tree__light" style="--appear: 31; --y: 62; --rotate: 547.2; --radius: 4.75; --speed: 0.9656736625704232; --delay: -4.455905887380796;"></div>
+    <div class="tree__light" style="--appear: 32; --y: 64; --rotate: 518.4; --radius: 4.5; --speed: 3.332611620320818; --delay: -0.9669199563085029;"></div>
+    <div class="tree__light" style="--appear: 33; --y: 66; --rotate: 489.6; --radius: 4.25; --speed: 5.81036788030598; --delay: -0.8061094249695255;"></div>
+    <div class="tree__light" style="--appear: 34; --y: 68; --rotate: 460.8; --radius: 4; --speed: 6.417097022557439; --delay: -0.6164273579352897;"></div>
+    <div class="tree__light" style="--appear: 35; --y: 70; --rotate: 432; --radius: 3.75; --speed: 1.325959611883567; --delay: -5.266842436445682;"></div>
+    <div class="tree__light" style="--appear: 36; --y: 72; --rotate: 403.2; --radius: 3.5; --speed: 0.39107164905933134; --delay: -4.290476893083737;"></div>
+    <div class="tree__light" style="--appear: 37; --y: 74; --rotate: 374.40000000000003; --radius: 3.25; --speed: 3.858773732137264; --delay: -4.848428308039468;"></div>
+    <div class="tree__light" style="--appear: 38; --y: 76; --rotate: 345.6; --radius: 3; --speed: 6.938930374826864; --delay: -5.694405271113818;"></div>
+    <div class="tree__light" style="--appear: 39; --y: 78; --rotate: 316.8; --radius: 2.75; --speed: 9.023663734065542; --delay: -7.192199001316477;"></div>
+    <div class="tree__light" style="--appear: 40; --y: 80; --rotate: 288; --radius: 2.5; --speed: 6.7982410690351225; --delay: -7.178501644288254;"></div>
+    <div class="tree__light" style="--appear: 41; --y: 82; --rotate: 259.2; --radius: 2.25; --speed: 1.799675486393113; --delay: -3.408279188869181;"></div>
+    <div class="tree__light" style="--appear: 42; --y: 84; --rotate: 230.4; --radius: 2; --speed: 7.656675266640618; --delay: -4.529689404721089;"></div>
+    <div class="tree__light" style="--appear: 43; --y: 86; --rotate: 201.6; --radius: 1.75; --speed: 5.926066787256239; --delay: -3.6542662689360084;"></div>
+    <div class="tree__light" style="--appear: 44; --y: 88; --rotate: 172.8; --radius: 1.5; --speed: 6.472975535082588; --delay: -7.111583120274005;"></div>
+    <div class="tree__light" style="--appear: 45; --y: 90; --rotate: 144; --radius: 1.25; --speed: 8.740145918060318; --delay: -8.193697596199215;"></div>
+    <div class="tree__light" style="--appear: 46; --y: 92; --rotate: 115.2; --radius: 1; --speed: 5.873397105146894; --delay: -8.596235045874366;"></div>
+    <div class="tree__light" style="--appear: 47; --y: 94; --rotate: 86.4; --radius: 0.75; --speed: 7.751924452469014; --delay: -1.1890208910899336;"></div>
+    <div class="tree__light" style="--appear: 48; --y: 96; --rotate: 57.6; --radius: 0.5; --speed: 9.241588360575681; --delay: -5.683393942221919;"></div>
+    <div class="tree__light" style="--appear: 49; --y: 98; --rotate: 28.8; --radius: 0.25; --speed: 9.867065555662256; --delay: -2.8938319159225934;"></div>
+    <svg class="tree__star" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 113.32 108.44" style="--delay: 50">
+      <path d="M90.19 104.33L57.12 87.38 24.4 105l5.91-36.69L3.44 42.65l36.72-5.72 16.1-33.5L73.06 36.6l36.83 4.97-26.35 26.21z" fill="none" stroke-width="6.88" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+</div>
+
+
+<div class="content" id="content">
+
+<!--  Боковое навигационное меню-->
+  <div id="mySidebar" class="sidebar">
+    <a href="#" onclick="redirectLanguageRU()" class="closebtn">ПУНК</a>
+    <!-- Фото-ссылки в виде блоков -->
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/kpp_obj.png" alt="Центральный вход">
+        <div class="image-text">Центральный вход</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/10.png" alt="Общежитие №10">
+        <div class="image-text">Общежитие №10</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/13.png" alt="Общежитие №12">
+        <div class="image-text">Общежитие №12</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/12.png" alt="Общежитие №13">
+        <div class="image-text">Общежитие №13</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/14.png" alt="Общежитие №14">
+        <div class="image-text">Общежитие №14</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/16.png" alt="Общежитие №16">
+        <div class="image-text">Общежитие №16</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/kov.png" alt="Коворгинг №16">
+        <div class="image-text">Коворгинг №16</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/kov.png" alt="Коворгинг №13">
+        <div class="image-text">Коворгинг №13</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/kov.png" alt="Коворгинг №12">
+        <div class="image-text">Коворгинг №12</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/gym_obj.jpg" alt="Тренажерный зал">
+        <div class="image-text">Тренажерный зал</div>
+
+      </div>
+    </a>
+    <a href="#" class="image-link">
+      <div class="image-container">
+        <img src="/static/images/navbar/pool_obj.jpg" alt="Бильярдный зал">
+        <div class="image-text">Бильярдный зал</div>
+
+      </div>
+    </a>
+  </div>
+
+  <a-scene vr-mode-ui="enabled: false">
+    <a-assets>
+
+      <!-- Изображения для первого массива -->
+      <img id="panorama1" src="/static/images/map/kpp.JPG">
+      <img id="panorama2" src="/static/images/map/razvilka_10_20.JPG">
+      <img id="panorama3" src="/static/images/map/razvilka_14_10.JPG">
+      <img id="panorama4" src="/static/images/map/10_obj.JPG">
+      <img id="panorama5" src="/static/images/map/12_obj.JPG">
+      <img id="panorama6" src="/static/images/map/13_obj.JPG">
+      <img id="panorama7" src="/static/images/map/14_obj.JPG">
+      <img id="panorama8" src="/static/images/map/15_obj.JPG">
+      <img id="panorama9" src="/static/images/map/16_obj.JPG">
+      <img id="panorama10" src="/static/images/map/DK.JPG">
+      <img id="panorama11" src="/static/images/map/20_obj.JPG">
+      <img id="panorama12" src="/static/images/map/21_obj.JPG">
+      <img id="panorama13" src="/static/images/map/22_obj.JPG">
+      <img id="panorama14" src="/static/images/map/23_obj.JPG">
+      <img id="panorama15" src="/static/images/map/pool.JPG">
+      <img id="panorama16" src="/static/images/map/room/gym.JPG">
+      <img id="panorama17" src="/static/images/map/room/pool%20(1).JPG">
+
+      <!-- Изображения для второго массива -->
+      <img id="photo1" src="/static/images/map/night/kpp_night.JPG">
+      <img id="photo2" src="/static/images/map/night/razvilka_10-20_night.JPG">
+      <img id="photo3" src="/static/images/map/night/razvilka_10-14_night.JPG">
+      <img id="photo4" src="/static/images/map/night/10_obj_night.JPG">
+      <img id="photo5" src="/static/images/map/night/12_obj_night.JPG">
+      <img id="photo6" src="/static/images/map/night/13_obj_night.JPG">
+      <img id="photo7" src="/static/images/map/night/14_obj_night.JPG">
+      <img id="photo8" src="/static/images/map/night/15_obj_night.JPG">
+      <img id="photo9" src="/static/images/map/night/16_obj_night.JPG">
+      <img id="photo10" src="/static/images/map/night/20_obj_night.JPG">
+      <img id="photo11" src="/static/images/map/night/21_obj_night.JPG">
+      <img id="photo12" src="/static/images/map/night/22_obj_night.JPG">
+      <img id="photo13" src="/static/images/map/night/23_obj_night.JPG">
+
+    </a-assets>
+    <a-sky id="pano-sky" src="#panorama1"></a-sky>
+  </a-scene>
+
+  <!-- вертикальный слайдер -->
+  <div class="slider-container">
+    <div class="slider-line" data-intro="Путевая линия показывает ваше движение по локациям. Здесь вы увидите название места, где находитесь в данный момент." data-position="right"></div>
+    <div class="slider" id="slider"></div>
+  </div>
+
+  <div class="slider-text">Панорама 1</div>
+
+  <!-- Кнопка для смены изображения day-night -->
+
+  <div class="switch-wrapper" data-intro="Нажмите на эту кнопку, чтобы переключиться между дневной и ночной темами." data-position="left">
+    <input id="switchCheckbox" type="checkbox" onchange="changeImage()">
+    <span class="switch-label day">День</span><label for="switchCheckbox" class="switch"></label>
+    <span class="switch-label night">Ночь</span>
+  </div>
+  <!-- chardin.js - туториал при входе -->
+<!--  <section class="home">-->
+<!--    <div data-intro="Нажмите на эту кнопку, чтобы переключиться между дневной и ночной темами." data-position="left"></div>-->
+<!--  </section>-->
+
+  <!-- Кнопка "Узнать больше" -->
+  <div class="virtual-tour" data-intro="Эта кнопка запускает видео с виртуальным гидом ИИ. Нажмите на нее, чтобы получить интересную информацию." data-position="left">
+    <button id="help-button" type="button" ontouchstart="">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" height="100" width="100" class="kf1">
+        <path id="dot" d="m 48.022097,82.90284 c 1.192314,-0.02147 2.173956,-0.831358 2.185365,-1.947038 0.01141,-1.11568 -0.973891,-2.270335 -2.185365,-2.278068 -1.247604,-0.008 -2.049902,1.054459 -2.03911,2.278072 0.01079,1.223613 1.240139,1.949581 1.984264,1.946573 C 57.764626,82.851586 72.086342,84.492783 81.015625,76 91.923664,65.625191 88.415613,45.865135 71.020037,29.046254 L 30.007844,69.947962 c -3.245469,3.236726 -4.128897,8.694076 0.573223,11.799844 4.30204,2.841515 11.355956,1.079354 17.44103,1.155034 z" style="opacity:1;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1" />
+        <path id="qmark" d="M 29.387754,29.397748 70.99794,71.030719 C 85.063599,67.076558 71.518598,50.054823 65.044194,64.589689 61.518139,72.50559 47.419888,77.236862 48,66.0625 L 47.97278,56.999069 C 52.628822,58.147585 74.845345,50.150007 66.202876,27.78672 61.644451,15.991323 38.55285,10.038018 29.387754,29.397748 Z" style="fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4	;stroke-opacity:1" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Видео с гидом -->
+  <div id="video-container">
+    <video id="guided-video">
+      <source src="/static/videos/punk/ru/13_PUNK.webm" type="video/webm">
+      Ваш браузер не поддерживает видео.
+    </video>
+  </div>
+
+  <!-- Кнопки навигации -->
+  <div class="btn-back"><img src="/static/images/load/nav_top.png" alt="Back" width="60px" height="60px"></div>
+  <div class="btn-forward" data-intro="Используйте эти кнопки для перемещения по локации. Нажмите на стрелки, чтобы поворачивать в разные направления." data-position="left"
+  ><img src="/static/images/load/nav_down.png" alt="Forward" width="60px" height="60px"></div>
+  <div class="branch">
+    <div class="btn-left"><img src="/static/images/load/nav_left.png" alt="Left" width="60px" height="60px"></div>
+  </div>
+  <div class="branch1">
+    <div class="btn-right"><img src="/static/images/load/nav_right.png" alt="Right" width="60px" height="60px"></div>
+  </div>
+
+
+  <div class="overlay-navigation">
+    <nav role="navigation"></nav>
+  </div>
+
+
+  <div id="overlay" class="overlay"></div>
+
+</div>
+
+<script>
+
+  const helpButton = document.querySelector("#help-button");
+
+  let clicked = false;
+  let flipped = false;
+
+  helpButton.onclick = () => {
+    clicked ^= 1;
+    flipped ^= 1 & clicked;
+
+    const nextClass      = flipped ? "kf3" : "kf1";
+    helpButton.className = clicked ? "kf2" : nextClass;
+  };
+
+</script>
+
+<script src="/static/JS/map.js"></script>
+<script src="/static/JS/buttons.js"></script>
+
+<script>
+  // Функция для инициализации Chardin.js и запуска тура
+  function startChardinTour() {
+    // Запуск тура по сайту для всего body
+    $('body').chardinJs('start');
+
+    // // Запуск тура по сайту для элемента с классом 'container'
+    // $('.content').chardinJs('start');
+  }
+
+  // Скрипт для скрытия заставки после задержки
+  setTimeout(function() {
+    document.querySelector('.loader-wrapper').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+
+    // Вызов функции для инициализации Chardin.js после скрытия прелоадера
+    startChardinTour();
+  }, 5000); // 5000 миллисекунд (5 секунд)
+</script>
+
+<script>
+  const panoramas = ['#panorama1', '#panorama2', '#panorama3', '#panorama4', '#panorama5', '#panorama6', '#panorama7', '#panorama8', '#panorama9', '#panorama10', '#panorama11', '#panorama12', '#panorama13', '#panorama14', '#panorama15', '#panorama16', '#panorama17'];
+  const newPhotoArray = ['#photo1', '#photo2', '#photo3', '#photo4', '#photo5', '#photo6', '#photo7', '#photo8', '#photo9', '#photo10', '#photo11', '#photo12', '#photo13'];
+
+  const buttons = [
+    ['.btn-forward'], // 0
+    ['.btn-back', '.btn-left', '.btn-right'], // 1
+    ['.btn-back', '.btn-left', '.btn-right'], // 2
+    ['.btn-back', '.btn-forward'], // 3
+    ['.btn-back', '.btn-forward'], // 4
+    ['.btn-back', '.btn-forward'], // 5
+    ['.btn-back', '.btn-left', '.btn-right', ".btn-back"], // 6
+    ['.btn-back', '.btn-forward'], // 7
+    ['.btn-back', '.btn-forward'], // 8
+    ['.btn-back', '.btn-forward'], // 9
+    ['.btn-back', '.btn-forward'], // 10
+    ['.btn-back', '.btn-forward'], // 11
+    ['.btn-back', '.btn-forward'], // 12
+    ['.btn-back'], // 13
+    ['.btn-back', '.btn-forward'] // 14
+    // Добавьте новые массивы с кнопками для каждой панорамы в соответствии с вашими ветвлениями
+  ];
+
+
+
+  let currentPanorama = 0;
+
+  function updatePanorama() {
+    const sky = document.querySelector('#pano-sky');
+    const newImage = panoramas[currentPanorama];
+
+    // Создаем временный элемент для плавного перехода между изображениями
+    const tempSky = document.createElement('a-sky');
+    tempSky.setAttribute('src', newImage);
+    tempSky.setAttribute('opacity', 0);
+    tempSky.setAttribute('animation__fade', 'property: components.material.material.opacity; from: 0; to: 1; dur: 1000');
+
+    // Добавляем временный элемент в сцену
+    const scene = document.querySelector('a-scene');
+    scene.appendChild(tempSky);
+
+    // По окончании анимации заменяем картинку и удаляем временный элемент
+    setTimeout(() => {
+      sky.setAttribute('src', newImage);
+      scene.removeChild(tempSky);
+    }, 1000);
+
+    // Управление видимостью кнопок в зависимости от текущей панорамы
+    $('.btn-back, .btn-forward, .btn-left, .btn-right').hide();
+    buttons[currentPanorama].forEach(button => $(button).show());
+
+    toggleVirtualTourVisibility(currentPanorama + 1); // Обновление видимости виртуального тура при изменении панорамы
+
+    // Плавное изменение прозрачности перед сменой изображения
+    if (sky) {
+      sky.setAttribute('animation__fade', `property: components.material.material.opacity; from: 1; to: 0; dur: 500; easing: easeInOutQuad`);
+      setTimeout(() => {
+        sky.setAttribute('src', newImage);
+        sky.setAttribute('animation__fade', `property: components.material.material.opacity; from: 0; to: 1; dur: 500; easing: easeInOutQuad`);
+      }, 500); // Ожидаем завершения анимации и затем меняем изображение снова с плавным появлением
+    }
+
+    updateSliderPosition(currentPanorama);
+
+  }
+
+  $('.btn-back').click(function() {
+    if (currentPanorama === 3) {
+      currentPanorama = 2; // Переход с 4 панорамы на 2 панораму
+    } else if (currentPanorama === 2) {
+      currentPanorama = 1; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 1) {
+      currentPanorama = 0; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 4) {
+      currentPanorama = 3; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 5) {
+      currentPanorama = 4; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 9) {
+      currentPanorama = 5; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 8) {
+      currentPanorama = 9; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 7) {
+      currentPanorama = 8; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 6) {
+      currentPanorama = 7; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 14) {
+      currentPanorama = 1; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 10) {
+      currentPanorama = 14; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 11) {
+      currentPanorama = 10; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 12) {
+      currentPanorama = 11; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 13) {
+      currentPanorama = 12; // Переход с панорамы 2 на панораму 3
+    }
+    updatePanorama();
+  });
+
+
+  $('.btn-forward').click(function() {
+    if (currentPanorama === 0) {
+      currentPanorama = 1; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 3) {
+      currentPanorama = 4; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 4) {
+      currentPanorama = 5; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 5) {
+      currentPanorama = 9; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 9) {
+      currentPanorama = 8; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 8) {
+      currentPanorama = 7; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 7) {
+      currentPanorama = 6; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 14) {
+      currentPanorama = 10; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 10) {
+      currentPanorama = 11; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 11) {
+      currentPanorama = 12; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 12) {
+      currentPanorama = 13; // Переход с панорамы 2 на панораму 3
+    }
+    updatePanorama();
+  });
+
+  $('.btn-left').click(function() {
+    if (currentPanorama === 1) {
+      currentPanorama = 2; // Переход с панорамы 2 на панораму 3
+    } else if (currentPanorama === 2) {
+      currentPanorama = 6; // Переход с панорамы 3 на панораму 7
+    } else if (currentPanorama === 6) {
+      currentPanorama = 3; // Переход с панорамы 3 на панораму 7
+    }
+    updatePanorama();
+  });
+
+  $('.btn-right').click(function() {
+    if (currentPanorama === 1) {
+      currentPanorama = 14; // Переход с панорамы 2 на панораму 15
+    } else if (currentPanorama === 2) {
+      currentPanorama = 3; // Переход с панорамы 3 на панораму 4
+    } else if (currentPanorama === 6) {
+      currentPanorama = 2; // Переход с панорамы 3 на панораму 7
+    }
+    updatePanorama();
+  });
+
+  function changeImage() {
+    const checkbox = document.getElementById('switchCheckbox');
+    if (checkbox.checked) {
+      panoramas.splice(0, panoramas.length, ...newPhotoArray);
+      isOriginalArray = false;
+    } else {
+      panoramas.splice(0, panoramas.length, '#panorama1', '#panorama2', '#panorama3', '#panorama4', '#panorama5', '#panorama6', '#panorama7', '#panorama8', '#panorama9', '#panorama10', '#panorama11', '#panorama12', '#panorama13', '#panorama14', '#panorama15');
+      isOriginalArray = true;
+    }
+    currentPanorama = 0;
+    updatePanorama();
+  }
+
+  // Обработчик изменения состояния чекбокса
+  document.getElementById('switchCheckbox').addEventListener('change', changeImage);
+
+
+  const placeNames = ['КПП / Главный вход','Ответвление 20-23', 'Ответвление 14-10', '10-е общежитие', '12-е общежитие', '13-е общежитие', '14-е общежитие', '15-е общежитие', '16-е общежитие', 'Дом культуры', '20-е общежитие', '21-е общежитие', '22-е общежитие', '23-е общежитие', 'Бильярдный зал', 'Тренажерный зал', 'Бильярдный зал'];
+
+  function updateSliderPosition(position) {
+    const sliderThumb = document.querySelector('.slider');
+    const sliderTrackHeight = document.querySelector('.slider-line').offsetHeight;
+    const thumbHeight = sliderThumb.offsetHeight;
+    const thumbPosition = (position / (panoramas.length - 1)) * (sliderTrackHeight - thumbHeight);
+    const sliderText = document.querySelector('.slider-text');
+
+    sliderThumb.style.top = thumbPosition + 'px';
+    sliderText.style.top = thumbPosition + 'px'; // Обновляем позицию текста
+    sliderText.textContent = placeNames[position];
+  }
+
+  updatePanorama();// Загрузка первой панорамы при загрузке страницы
+
+  // Добавленный скрипт для установки начальной позиции ползунка
+  document.addEventListener('DOMContentLoaded', function () {
+    updateSliderPosition(0);
+
+    const sliderLine = document.querySelector('.slider-line');
+    const sliderThumb = document.querySelector('.slider');
+    const sliderTrackHeight = sliderLine.offsetHeight;
+    const thumbHeight = sliderThumb.offsetHeight;
+
+    sliderLine.addEventListener('click', function (event) {
+      const clickY = event.clientY - sliderLine.getBoundingClientRect().top;
+      const thumbPosition = Math.min(sliderTrackHeight - thumbHeight, Math.max(0, clickY - thumbHeight / 2));
+      const newPosition = thumbPosition / (sliderTrackHeight - thumbHeight) * (panoramas.length - 1);
+
+      currentPanorama = Math.round(newPosition);
+      updatePanorama();
+    });// Установка начальной позиции ползунка (сверху)
+  });
+</script>
+
+<script>
+  // Получаем все элементы списка
+  const listItems = document.querySelectorAll('.overlay-navigation ul li');
+
+  // Проходимся по каждому элементу списка и добавляем обработчик событий
+  listItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      // Обновляем текущую панораму при нажатии на элемент списка
+      currentPanorama = index;
+      updatePanorama();
+    });
+  });
+
+</script>
+
+
+<script>
+  function openNav() {
+    document.getElementById("mySidebar").style.left = "0"; // Изменить позицию на экране при открытии
+  }
+
+  function closeNav() {
+    document.getElementById("mySidebar").style.left = "-350px"; // Скрыть меню за пределами экрана при закрытии
+  }
+
+  // Новая функция для открытия меню при наведении курсора
+  document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('mySidebar');
+    const content = document.querySelector('.main');
+
+    document.addEventListener('mousemove', function(event) {
+      const x = event.clientX;
+
+      if (x < 200) { // Измените это значение на нужное вам расстояние от левого края
+        openNav(); // Открываем меню
+      } else {
+        closeNav(); // Закрываем меню
+      }
+    });
+  });
+
+  function redirectLanguageRU() {
+    window.location.href = '/'
+  }
+
+</script>
+
+<script>
+  // Получаем ссылки на фото-ссылки
+  const imageLinks = document.querySelectorAll('.image-link');
+
+  // Обходим каждую фото-ссылку и добавляем обработчик клика
+  imageLinks.forEach((link, index) => {
+    link.addEventListener('click', function(event) {
+      event.preventDefault(); // Предотвращаем действие по умолчанию при клике на ссылку
+
+      var altText = link.querySelector('img').getAttribute('alt');
+      if (altText === 'Общежитие №10') {
+        index = 3;
+      } else if (altText === 'Общежитие №12') {
+        index = 4;
+      } else if (altText === 'Центральный вход') {
+        index = 0;
+      } else if (altText === 'Общежитие №13') {
+        index = 5;
+      } else if (altText === 'Общежитие №14') {
+        index = 6;
+      } else if (altText === 'Общежитие №16') {
+        index = 8;
+      } else if (altText === 'Бильярдный зал') {
+        index = 16;
+      } else if (altText === 'Тренажерный зал') {
+        index = 15;
+      }
+      // } else if (altText === 'Коворкинг №12') {
+      //   index = 10;
+      // } else if (altText === 'Коворкинг №13') {
+      //   index = 10;
+      // } else if (altText === 'Коворкинг №16') {
+      //   index = 10;
+
+
+
+      // Обновляем текущую панораму и вызываем функцию обновления панорамы
+      currentPanorama = index;
+      updatePanorama();
+    });
+  });
+
+</script>
+
+</body>
+</html>
